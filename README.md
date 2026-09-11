@@ -9,12 +9,20 @@ is still in `HEAD` — and what each surviving file cost.
 It is also a full system monitor: CPU and memory straight from the Mach kernel, every
 listening port, what is draining the battery, and where the disk went.
 
-### [⬇ Download the latest release](https://github.com/Jackpkn/Flightdeck-releases/releases/latest)
+```sh
+brew tap Jackpkn/flightdeck
+brew trust jackpkn/flightdeck
+brew install flightdeck
+```
 
-macOS 14+ · Universal (Apple silicon + Intel) · 12 MB · MIT licensed · no account, no telemetry
+Then run `flightdeck`. No security warning, nothing to bypass — see
+[why that works](#why-brew-installs-cleanly).
 
-> **Before you open it:** this build is not notarised by Apple, so macOS blocks it on first
-> launch. One Terminal command fixes it — see [Install](#install). It takes ten seconds.
+macOS 14+ · Universal (Apple silicon + Intel) · MIT licensed · no account, no telemetry
+
+<sub>Prefer a DMG? [Download the latest release](https://github.com/Jackpkn/Flightdeck-releases/releases/latest)
+— but macOS will block it on first launch, because a browser download gets quarantined. The
+[Install](#install) section explains how to get past that, and why `brew` avoids it entirely.</sub>
 
 ---
 
@@ -71,49 +79,60 @@ exactly, and deletes what it cannot measure honestly at all.
 
 ## Install
 
-**1.** Open the DMG and drag **Flightdeck** to Applications.
+### Recommended: Homebrew
 
-**2.** Run this once, in Terminal:
+```sh
+brew tap Jackpkn/flightdeck
+brew trust jackpkn/flightdeck
+brew install flightdeck
+```
+
+Then run `flightdeck`. To get it into Spotlight and the Dock as well:
+
+```sh
+ln -sfn "$(brew --prefix flightdeck)/Flightdeck.app" /Applications/Flightdeck.app
+```
+
+`brew trust` is Homebrew's own safety check for third-party taps, added in Homebrew 6. It is
+not specific to this tap.
+
+### Why brew installs cleanly
+
+macOS attaches a `com.apple.quarantine` flag to files, and **Gatekeeper only blocks files
+carrying that flag**. The flag is applied by whatever fetched the file — browsers set it,
+`curl` does not. Homebrew formulas download with `curl`, so the app never carries it and
+Gatekeeper never engages, even though Flightdeck is not notarised with a paid Apple Developer
+certificate.
+
+It has to be a *formula* rather than a *cask* for this to work: Homebrew 6 removed
+`--no-quarantine`, so casks always quarantine.
+
+### The DMG
+
+A browser download does get quarantined, so macOS blocks it. After dragging Flightdeck to
+Applications, run this once:
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/Flightdeck.app
 ```
 
-Then open it normally. That is the whole install.
+That removes the download-origin flag. It says nothing about the code — the bundle is signed
+and verifies cleanly (`codesign --verify --deep --strict` reports *valid on disk* and
+*satisfies its Designated Requirement*); it is un-notarised, not damaged. Only ever run that
+on software you meant to download.
 
 <details>
-<summary><b>Why is step 2 needed, and is it safe?</b></summary>
+<summary><b>Without Terminal (macOS 15 Sequoia and later)</b></summary>
 
 <br>
 
-macOS attaches a `com.apple.quarantine` flag to anything your browser downloads. The flag
-records *where a file came from* — it says nothing about the code inside it. Gatekeeper sees
-the flag, looks for an Apple Developer ID signature, finds none, and refuses to launch the
-app. Removing the flag tells macOS you know where this came from.
+1. Double-click **Flightdeck**. macOS blocks it — click **Done**.
+2. Open **System Settings → Privacy & Security**, scroll to **Security**, and click
+   **Open Anyway** next to the message about Flightdeck.
+3. Authenticate, then confirm.
 
-Flightdeck is not signed with an Apple Developer ID because that requires a paid Apple
-Developer Program membership. Nothing about the app is broken: the bundle is signed and
-verifies cleanly (`codesign --verify --deep --strict` reports *valid on disk* and *satisfies
-its Designated Requirement*). It is simply not *notarised by Apple*.
-
-Only ever run that command on software you actually meant to download. If you would rather
-not, use the GUI route below — or build from source, which never gets quarantined at all.
-
-</details>
-
-<details>
-<summary><b>Prefer not to use Terminal? (macOS 15 Sequoia and later)</b></summary>
-
-<br>
-
-1. Double-click **Flightdeck** in Applications. macOS blocks it — click **Done**.
-2. Open **System Settings → Privacy & Security**.
-3. Scroll down to **Security**. There is a line saying *"Flightdeck was blocked to protect
-   your Mac."* Click **Open Anyway**.
-4. Authenticate, then confirm **Open Anyway** in the dialog that follows.
-
-> **Note:** on macOS 15 and later, Control-clicking the app and choosing **Open** no longer
-> works — Apple removed that bypass. The System Settings route above replaced it.
+> Control-clicking the app and choosing **Open** no longer works on macOS 15 or later.
+> Apple removed that bypass; the route above replaced it.
 
 </details>
 
