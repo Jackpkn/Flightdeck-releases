@@ -13,6 +13,9 @@ listening port, what is draining the battery, and where the disk went.
 
 macOS 14+ · Universal (Apple silicon + Intel) · 12 MB · MIT licensed · no account, no telemetry
 
+> **Before you open it:** this build is not notarised by Apple, so macOS blocks it on first
+> launch. One Terminal command fixes it — see [Install](#install). It takes ten seconds.
+
 ---
 
 ## Cost per outcome
@@ -68,22 +71,51 @@ exactly, and deletes what it cannot measure honestly at all.
 
 ## Install
 
-1. Open the DMG and drag **Flightdeck** to Applications.
-2. On first launch, **right-click the app and choose Open.**
+**1.** Open the DMG and drag **Flightdeck** to Applications.
 
-Step 2 is needed because this build is not notarised with an Apple Developer certificate.
-macOS will say it cannot verify the developer; right-click → Open gives you a way through,
-where double-clicking does not.
-
-If you would rather not see that dialog at all, macOS attaches a `com.apple.quarantine` flag
-to anything your browser downloads — it records where a file came from and says nothing about
-the code inside it:
+**2.** Run this once, in Terminal:
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/Flightdeck.app
 ```
 
-Only ever run that on software you meant to download.
+Then open it normally. That is the whole install.
+
+<details>
+<summary><b>Why is step 2 needed, and is it safe?</b></summary>
+
+<br>
+
+macOS attaches a `com.apple.quarantine` flag to anything your browser downloads. The flag
+records *where a file came from* — it says nothing about the code inside it. Gatekeeper sees
+the flag, looks for an Apple Developer ID signature, finds none, and refuses to launch the
+app. Removing the flag tells macOS you know where this came from.
+
+Flightdeck is not signed with an Apple Developer ID because that requires a paid Apple
+Developer Program membership. Nothing about the app is broken: the bundle is signed and
+verifies cleanly (`codesign --verify --deep --strict` reports *valid on disk* and *satisfies
+its Designated Requirement*). It is simply not *notarised by Apple*.
+
+Only ever run that command on software you actually meant to download. If you would rather
+not, use the GUI route below — or build from source, which never gets quarantined at all.
+
+</details>
+
+<details>
+<summary><b>Prefer not to use Terminal? (macOS 15 Sequoia and later)</b></summary>
+
+<br>
+
+1. Double-click **Flightdeck** in Applications. macOS blocks it — click **Done**.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll down to **Security**. There is a line saying *"Flightdeck was blocked to protect
+   your Mac."* Click **Open Anyway**.
+4. Authenticate, then confirm **Open Anyway** in the dialog that follows.
+
+> **Note:** on macOS 15 and later, Control-clicking the app and choosing **Open** no longer
+> works — Apple removed that bypass. The System Settings route above replaced it.
+
+</details>
 
 ## Privacy
 
